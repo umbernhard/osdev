@@ -87,16 +87,32 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 void terminal_putchar(char c) 
 {
 	if (c == '\n') {
-		terminal_row++;
 		terminal_column = 0;
-		// terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-		return;
+	} else {
+		terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
+		terminal_column++;
 	}
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
+	terminal_row++;
+
+	if (terminal_column == VGA_WIDTH) {
+		terminal_buffer[VGA_MEMORY-3] = vga_entry('C', VGA_COLOR_LIGHT_MAGENTA);
 		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+	}
+	if (terminal_row == VGA_HEIGHT) {
+		terminal_buffer[VGA_MEMORY-2] = vga_entry('B', VGA_COLOR_LIGHT_MAGENTA);
+		// scroll the terminal by moving each line in the buffer up
+		for (size_t i = 0; i < VGA_HEIGHT - 1; i++) {
+			for (size_t j = 0; j < VGA_WIDTH; j++) {
+				size_t this_line= i * VGA_WIDTH + j;
+				size_t next_line = (i+1)*VGA_WIDTH + j;
+
+				// TODO: this works but not how want...
+				terminal_buffer[this_line] = terminal_buffer[next_line];
+			}
+		}
+
+		// stay at the bottom
+		terminal_row = VGA_HEIGHT - 1;
 	}
 }
 
@@ -117,5 +133,7 @@ void kernel_main(void)
 	terminal_initialize();
 
 	/* Newline support is left as an exercise. */
-	terminal_writestring("Hello, kernel World!\nSome more text!");
+	terminal_writestring("Hello, kernel World!\nEven\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ndifferent!");
+
+	terminal_buffer[VGA_MEMORY-1] = vga_entry('A', VGA_COLOR_LIGHT_BLUE);
 }
