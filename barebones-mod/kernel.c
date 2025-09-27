@@ -86,33 +86,36 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 
 void terminal_putchar(char c) 
 {
+	bool newline = false;
 	if (c == '\n') {
+		newline = true;
+	} 
+
+	if (terminal_column == VGA_WIDTH || newline) {
+		terminal_row++;
 		terminal_column = 0;
-	} else {
+		if (terminal_row == VGA_HEIGHT) {
+			// scroll the terminal by moving each line in the buffer up
+			for (size_t i = 0; i < VGA_HEIGHT - 1; i++) {
+				size_t this_line = i * VGA_WIDTH;
+				size_t next_line = (i + 1) * VGA_WIDTH;
+				for (size_t j = 0; j < VGA_WIDTH; j++) {
+					terminal_buffer[this_line + j] = terminal_buffer[next_line + j];
+				}
+			}
+
+			// clear out the last line
+			for (size_t j = 0; j < VGA_WIDTH; j++) {
+				terminal_putentryat(' ', terminal_color, j, VGA_HEIGHT-1);
+			}
+
+			// stay at the bottom
+			terminal_row = VGA_HEIGHT - 1;
+		}
+	}
+	if (!newline) {
 		terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 		terminal_column++;
-	}
-	terminal_row++;
-
-	if (terminal_column == VGA_WIDTH) {
-		terminal_buffer[VGA_MEMORY-3] = vga_entry('C', VGA_COLOR_LIGHT_MAGENTA);
-		terminal_column = 0;
-	}
-	if (terminal_row == VGA_HEIGHT) {
-		terminal_buffer[VGA_MEMORY-2] = vga_entry('B', VGA_COLOR_LIGHT_MAGENTA);
-		// scroll the terminal by moving each line in the buffer up
-		for (size_t i = 0; i < VGA_HEIGHT - 1; i++) {
-			for (size_t j = 0; j < VGA_WIDTH; j++) {
-				size_t this_line= i * VGA_WIDTH + j;
-				size_t next_line = (i+1)*VGA_WIDTH + j;
-
-				// TODO: this works but not how want...
-				terminal_buffer[this_line] = terminal_buffer[next_line];
-			}
-		}
-
-		// stay at the bottom
-		terminal_row = VGA_HEIGHT - 1;
 	}
 }
 
@@ -132,8 +135,5 @@ void kernel_main(void)
 	/* Initialize terminal interface */
 	terminal_initialize();
 
-	/* Newline support is left as an exercise. */
-	terminal_writestring("Hello, kernel World!\nEven\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ntext!\nSome\nmore\ndifferent!");
-
-	terminal_buffer[VGA_MEMORY-1] = vga_entry('A', VGA_COLOR_LIGHT_BLUE);
+	terminal_writestring("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
 }
