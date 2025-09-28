@@ -38,6 +38,27 @@ void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
 	terminal_buffer[index] = vga_entry(c, color);
 }
 
+void scroll_terminal() {
+
+	// for each character in every line in the terminal except the first
+	// move it to the line above it
+	for (size_t row = 0; row < VGA_HEIGHT; row++) {
+		for (size_t col = 0; col < VGA_WIDTH; col++) {
+			size_t row_idx = row*VGA_WIDTH;
+			size_t next_row_idx = (row+1)*VGA_WIDTH;
+
+			terminal_buffer[row_idx + col] = terminal_buffer[next_row_idx + col];
+		}
+	}
+
+}
+
+void clear_line(size_t row) {
+	for (size_t col = 0; col < VGA_WIDTH; col++) {
+		terminal_putentryat(0, terminal_color, col, row);
+	}
+}
+
 void terminal_putchar(char c) {
 	unsigned char uc = c;
 	bool newline = false;
@@ -50,8 +71,15 @@ void terminal_putchar(char c) {
 
 	if (++terminal_column == VGA_WIDTH || newline) {
 		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+		if (++terminal_row == VGA_HEIGHT){
+
+			// scroll the terminal instead
+			scroll_terminal();
+			clear_line(terminal_row);
+
+			// Stay at the bottom
+			terminal_row = VGA_HEIGHT - 1;
+		}
 	}
 }
 
